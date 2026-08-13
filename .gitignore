@@ -1,0 +1,21 @@
+# Real scan exports — contain machine IDs, timestamps and EN numbers of
+# actual people. Never commit. sample_data.txt (synthetic) is the only
+# data file in this repo.
+test*.txt
+*_result.xlsx
+*.xlsx
+!sample_data.txt
+
+# PyInstaller build output (30 MB — rebuild it, don't version it)
+*.exe
+build/
+dist/
+*.spec
+
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+.DS_Store
+Thumbs.db
