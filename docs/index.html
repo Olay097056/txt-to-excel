@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>txt-to-excel — demo</title>
+<meta name="description" content="ลองตัวตรวจจับเครื่องรูดบัตร ETWIN ในเบราว์เซอร์ — ตรวจสองชั้น แล้วชี้ว่าเครื่องไหนมีปัญหา">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0D1117;--panel:#161E2D;--panel-2:#1E283C;--edge:#32415A;
+  --txt:#E2E8F0;--dim:#64748B;
+  --green:#34D399;--green-bg:#0F3C2D;
+  --amber:#FBBF24;--amber-bg:#372A0A;
+  --red:#F87171;--red-bg:#3C0F0F;
+  --blue:#60A5FA;--blue-bg:#0F2850;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  --sans:"IBM Plex Sans Thai","IBM Plex Sans",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--ink);color:var(--txt);font-family:var(--sans);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:34px 22px 80px}
+
+a{color:var(--green)}
+h1{font-family:var(--mono);font-size:1.55rem;font-weight:600;letter-spacing:-.02em}
+.sub{color:var(--dim);margin-top:8px;max-width:62ch}
+.back{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;color:var(--dim);text-decoration:none}
+.back:hover{color:var(--txt)}
+
+.note{
+  margin-top:18px;border-left:2px solid var(--blue);background:rgba(15,40,80,.3);
+  padding:11px 14px;border-radius:0 3px 3px 0;font-size:.88rem;color:#C7D2E0;
+}
+
+.panel{border:1px solid var(--edge);background:var(--panel);border-radius:4px;padding:18px;margin-top:22px}
+.panel h2{font-family:var(--mono);font-size:.75rem;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-bottom:14px}
+
+textarea{
+  width:100%;height:150px;resize:vertical;
+  background:var(--ink);color:var(--txt);border:1px solid var(--edge);border-radius:3px;
+  font-family:var(--mono);font-size:.82rem;line-height:1.75;padding:12px;
+}
+textarea:focus{outline:none;border-color:var(--blue)}
+
+.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:12px}
+button{
+  font-family:var(--mono);font-size:.75rem;letter-spacing:.06em;
+  padding:8px 15px;border-radius:3px;cursor:pointer;
+  border:1px solid var(--edge);background:var(--panel-2);color:var(--txt);
+  transition:border-color .2s,background .2s,color .2s;
+}
+button:hover{border-color:var(--dim)}
+button.go{background:var(--green-bg);border-color:#155E43;color:var(--green)}
+button.go:hover{background:#12503B}
+.hint{font-family:var(--mono);font-size:.7rem;color:var(--dim)}
+
+/* summary */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:18px}
+.tile{border:1px solid var(--edge);border-radius:3px;padding:12px 14px;background:var(--ink)}
+.tile b{display:block;font-family:var(--mono);font-size:1.5rem;font-weight:600;line-height:1.2}
+.tile span{font-family:var(--mono);font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.tile.ok b{color:var(--green)} .tile.sus b{color:var(--amber)} .tile.bad b{color:var(--red)}
+
+.verdict{
+  font-family:var(--mono);font-size:.9rem;padding:12px 14px;border-radius:3px;
+  border:1px solid var(--edge);background:var(--ink);margin-bottom:18px;
+}
+.verdict.hit{border-color:#4A3A12;background:var(--amber-bg);color:var(--amber)}
+.verdict.clean{border-color:#155E43;background:var(--green-bg);color:var(--green)}
+
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.78rem}
+th{
+  text-align:left;font-weight:600;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;
+  font-size:.63rem;padding:7px 9px;border-bottom:1px solid var(--edge);white-space:nowrap;
+}
+td{padding:7px 9px;border-bottom:1px solid rgba(50,65,90,.35);vertical-align:top}
+tbody tr.bad{background:rgba(60,15,15,.42)}
+tbody tr.sus{background:rgba(55,42,10,.42)}
+td.why{font-family:var(--sans);font-size:.8rem;color:#C7D2E0;min-width:210px}
+.chip{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;padding:2px 6px;border-radius:2px;white-space:nowrap}
+.chip.ok{color:var(--green);background:var(--green-bg)}
+.chip.sus{color:var(--amber);background:var(--amber-bg)}
+.chip.bad{color:var(--red);background:var(--red-bg)}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+.units{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.unit{border:1px solid var(--edge);border-radius:3px;padding:12px 14px;background:var(--ink)}
+.unit.flag{border-color:#4A3A12}
+.unit .id{font-family:var(--mono);font-size:.95rem;font-weight:600}
+.unit .bar{display:flex;height:5px;border-radius:2px;overflow:hidden;margin:9px 0 8px;background:var(--edge)}
+.unit .bar i{display:block;height:100%}
+.unit .bar i.ok{background:var(--green)} .unit .bar i.sus{background:var(--amber)} .unit .bar i.bad{background:var(--red)}
+.unit .det{font-family:var(--mono);font-size:.68rem;color:var(--dim);line-height:1.8}
+.unit .det em{font-style:normal;color:var(--amber)}
+
+footer{margin-top:34px;font-family:var(--mono);font-size:.68rem;color:var(--dim);line-height:1.9;border-top:1px solid rgba(50,65,90,.45);padding-top:16px}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+@media (max-width:560px){.wrap{padding:24px 15px 60px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <a class="back" href="https://github.com/Olay097056/txt-to-excel">&larr; GITHUB REPO</a>
+  <h1 style="margin-top:14px">txt-to-excel</h1>
+  <p class="sub">ตัวตรวจไฟล์ export จากเครื่องรูดบัตร ETWIN — วางข้อความลงไป แล้วมันจะบอกว่า<strong>เครื่องไหนกำลังมีปัญหา</strong> ไม่ใช่แค่บอกว่าไฟล์มี error</p>
+
+  <div class="note">
+    หน้านี้เป็นตัวอย่างให้ลองเล่น ตรรกะการตรวจสอบพอร์ตมาจาก <code>txt_to_excel.py</code> ตัวจริงทั้งหมด
+    <strong>ประมวลผลในเบราว์เซอร์ล้วน ไม่มีการอัปโหลดข้อมูลไปที่ใด</strong>
+    ตัวจริงเป็นโปรแกรม Python ที่เขียนไฟล์ Excel ระบายสีออกมา ส่วนหน้านี้แสดงผลเป็นตารางแทน
+    ข้อมูลตัวอย่างเป็นข้อมูลสังเคราะห์ ไม่ใช่ข้อมูลการรูดบัตรของใครจริง
+  </div>
+
+  <div class="panel">
+    <h2>ข้อมูลนำเข้า</h2>
+    <textarea id="input" spellcheck="false" aria-label="ข้อมูลนำเข้า"></textarea>
+    <div class="row">
+      <button class="go" id="run" type="button">ตรวจสอบ</button>
+      <button id="sample" type="button">โหลดตัวอย่าง 60 รายการ</button>
+      <button id="clear" type="button">ล้าง</button>
+      <span class="hint">1 บรรทัด = 20 ตัวอักษร · เครื่อง(2) ปี(4) เดือน(2) วัน(2) เวลา(4) EN(6)</span>
+    </div>
+  </div>
+
+  <div id="out"></div>
+
+  <footer>
+    <div>ตรวจสองชั้น — กฎตายตัวจับค่าที่เป็นไปไม่ได้ (แดง) · ความถี่รายเครื่องจับค่าที่ถูกต้องแต่ผิดปกติสำหรับเครื่องนั้น (เหลือง)</div>
+    <div>ความถี่ใช้กับ ปี/เดือน/วัน เท่านั้น — เวลาและ EN มีค่าไม่ซ้ำกันเกือบทุกแถว ถ้าเอาไปจับด้วยจะเตือนทุกบรรทัดจนกลบของจริง</div>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ── ported verbatim from txt_to_excel.py ─────────────────── */
+  var LABEL = {unit:"เครื่อง",year:"ปี",month:"เดือน",day:"วัน",time:"เวลา(TIME)",en:"EN"};
+  var FREQ_FIELDS = ["year","month","day"];
+  var ILLEGAL = /[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]/g;
+
+  var SAMPLE = ["03202608080725095319","01202608080652080239","01202608081037017602","06202608080802021265",
+"04202608081104041544","03202618080731041233","06202608080614092657","06202608080536086748",
+"04202608080514016105","06202608081808047959","04202608080734025439","06202608080935099391",
+"01202608880902038441","02202608081006081793","01202608081403091134","02202608081243079693",
+"04202608081720071027","06202608081223049291","02202608081711041994","01202608081419078838",
+"02199908080755013763","03202608081404025475","06202608081110054833","02202608081226015138",
+"01202608081735085107","03202608081044055898","06202608081237069795","01202608081805045381",
+"04202608081642018519","01202608081644050580","06202608081552068411","0420260808023102X405",
+"03202608080529056591","02202608081407074709","01202608080849047674","02202608081615062153",
+"04202608081831020561","02202608081225082016","03202608080752066429","06202608080945064433",
+"03202608081556059865","02202608080705033097","02202608080842040583","01202608081253087217",
+"06202609080813036383","02202608081134058398","06202608081420026448","06202608081441098630",
+"01202608081257099204","06202608081125062294","04202608080630093137","04202608080512018827",
+"02202608081210024408","03202608081403023419","01202608081409080335","01202608081039013342",
+"01202608081813090487","04202608080740043063","03202608081423072147","01202608080654073972"].join("\n");
+
+  function isDigits(s){ return s.length > 0 && /^[0-9]+$/.test(s); }
+
+  function daysInMonth(y, m){
+    var leap = (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0);
+    return [31, leap ? 29 : 28, 31,30,31,30,31,31,30,31,30,31][m-1];
+  }
+
+  function parseLine(raw){
+    var line = raw.replace(ILLEGAL, "");
+    var problems = [];
+    if (line.length !== 20) problems.push("ความยาวไม่เท่ากับ 20 ตัว (ได้ " + line.length + ")");
+
+    var f = {
+      unit:  line.length >= 2  ? line.slice(0,2)   : "",
+      year:  line.length >= 6  ? line.slice(2,6)   : "",
+      month: line.length >= 8  ? line.slice(6,8)   : "",
+      day:   line.length >= 10 ? line.slice(8,10)  : "",
+      time:  line.length >= 14 ? line.slice(10,14) : "",
+      en:    line.length >= 20 ? line.slice(14,20) : ""
+    };
+
+    Object.keys(f).forEach(function(k){
+      if (f[k] && !isDigits(f[k])) problems.push(LABEL[k] + "มีอักขระแปลกปลอม (" + f[k] + ")");
+    });
+
+    if (isDigits(f.year) && !(+f.year >= 2000 && +f.year <= 2099)) problems.push("ปีผิดปกติ (" + f.year + ")");
+    if (isDigits(f.month) && !(+f.month >= 1 && +f.month <= 12))   problems.push("เดือนผิดปกติ (" + f.month + ")");
+
+    if (isDigits(f.day)){
+      var maxDay = 31;
+      if (isDigits(f.month) && +f.month >= 1 && +f.month <= 12){
+        var yy = (isDigits(f.year) && +f.year >= 2000 && +f.year <= 2099) ? +f.year : 2026;
+        maxDay = daysInMonth(yy, +f.month);
+      }
+      if (!(+f.day >= 1 && +f.day <= maxDay))
+        problems.push("วันผิดปกติ (" + f.day + " — เดือนนี้มี " + maxDay + " วัน)");
+    }
+
+    if (isDigits(f.time)){
+      if (f.time.length !== 4) problems.push("เวลา(TIME)ความยาวผิด (" + f.time + ")");
+      else {
+        var hh = +f.time.slice(0,2), mm = +f.time.slice(2);
+        if (!(hh <= 23 && mm <= 59)) problems.push("เวลา(TIME)ผิดปกติ (" + f.time.slice(0,2) + ":" + f.time.slice(2) + ")");
+      }
+    }
+
+    if (isDigits(f.en) && f.en.length !== 6) problems.push("EN ความยาวไม่เท่ากับ 6 ตัว (" + f.en + ")");
+
+    return { fields:f, problems:problems };
+  }
+
+  /* per-terminal frequency layer: dominant share >= 0.5 and value differs */
+  function applyFrequency(recs){
+    var norm = {};
+    FREQ_FIELDS.forEach(function(fl){ norm[fl] = {}; });
+    recs.forEach(function(r){
+      var u = r.fields.unit;
+      FREQ_FIELDS.forEach(function(fl){
+        var v = r.fields[fl];
+        if (!v) return;
+        if (!norm[fl][u]) norm[fl][u] = {};
+        norm[fl][u][v] = (norm[fl][u][v] || 0) + 1;
+      });
+    });
+
+    var dom = {};
+    FREQ_FIELDS.forEach(function(fl){
+      dom[fl] = {};
+      Object.keys(norm[fl]).forEach(function(u){
+        var counts = norm[fl][u], total = 0, best = null, bestC = -1;
+        Object.keys(counts).forEach(function(v){
+          total += counts[v];
+          if (counts[v] > bestC){ bestC = counts[v]; best = v; }
+        });
+        dom[fl][u] = { value: best, share: total ? bestC / total : 0 };
+      });
+    });
+
+    recs.forEach(function(r){
+      var u = r.fields.unit;
+      r.suspicious = [];
+      FREQ_FIELDS.forEach(function(fl){
+        var v = r.fields[fl];
+        if (!v) return;
+        var e = dom[fl][u];
+        if (!e) return;
+        if (e.share >= 0.5 && v !== e.value)
+          r.suspicious.push(LABEL[fl] + "ไม่ปกติของเครื่องนี้ (ค่าปกติคือ " + e.value + ")");
+      });
+    });
+    return recs;
+  }
+
+  function statusOf(r){ return r.problems.length ? "bad" : (r.suspicious.length ? "sus" : "ok"); }
+  function problemType(msg){ return msg.replace(/\s*\(.*?\)\s*$/, "").trim(); }
+
+  /* ── render ───────────────────────────────────────────────── */
+  var esc = function(s){ return String(s).replace(/[&<>"]/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); };
+
+  function render(recs){
+    var out = document.getElementById("out");
+    if (!recs.length){ out.innerHTML = ""; return; }
+
+    var ok=0, sus=0, bad=0, units={};
+    recs.forEach(function(r){
+      var st = statusOf(r);
+      if (st === "ok") ok++; else if (st === "sus") sus++; else bad++;
+      var u = r.fields.unit || "??";
+      if (!units[u]) units[u] = {total:0, ok:0, sus:0, bad:0, kinds:{}};
+      var m = units[u];
+      m.total++;
+      if (st === "ok") m.ok++;
+      else {
+        m[st]++;
+        (st === "bad" ? r.problems : r.suspicious).forEach(function(p){
+          var k = problemType(p); m.kinds[k] = (m.kinds[k] || 0) + 1;
+        });
+      }
+    });
+
+    var flagged = Object.keys(units).filter(function(u){ return units[u].bad || units[u].sus; }).sort();
+
+    var h = '<div class="panel"><h2>ผลตรวจ</h2>';
+    h += '<div class="tiles">'
+       + '<div class="tile"><b>' + recs.length + '</b><span>รายการ</span></div>'
+       + '<div class="tile ok"><b>' + ok + '</b><span>ปกติ</span></div>'
+       + '<div class="tile sus"><b>' + sus + '</b><span>สงสัย</span></div>'
+       + '<div class="tile bad"><b>' + bad + '</b><span>ผิด</span></div>'
+       + '</div>';
+
+    h += flagged.length
+      ? '<div class="verdict hit">เครื่องที่ต้องไปดู: ' + flagged.join(", ") + '</div>'
+      : '<div class="verdict clean">ไม่พบเครื่องที่มีปัญหา</div>';
+
+    h += '<div class="units">';
+    Object.keys(units).sort().forEach(function(u){
+      var m = units[u], t = m.total || 1;
+      var kinds = Object.keys(m.kinds).sort(function(a,b){ return m.kinds[b]-m.kinds[a]; });
+      h += '<div class="unit' + ((m.bad||m.sus) ? ' flag' : '') + '">'
+         + '<div class="id">เครื่อง ' + esc(u) + '</div>'
+         + '<div class="bar">'
+         +   '<i class="ok" style="width:' + (m.ok/t*100) + '%"></i>'
+         +   '<i class="sus" style="width:' + (m.sus/t*100) + '%"></i>'
+         +   '<i class="bad" style="width:' + (m.bad/t*100) + '%"></i>'
+         + '</div>'
+         + '<div class="det">' + m.total + ' รายการ · ผิด ' + m.bad + ' · สงสัย ' + m.sus;
+      kinds.forEach(function(k){ h += '<br><em>' + esc(k) + ' ×' + m.kinds[k] + '</em>'; });
+      h += '</div></div>';
+    });
+    h += '</div></div>';
+
+    /* problem rows first, then the rest */
+    var order = recs.slice().sort(function(a,b){
+      var rank = {bad:0, sus:1, ok:2};
+      return rank[statusOf(a)] - rank[statusOf(b)] || a.no - b.no;
+    });
+
+    h += '<div class="panel"><h2>รายบรรทัด — เรียงปัญหาขึ้นก่อน</h2><div class="scroll"><table>'
+       + '<thead><tr><th>#</th><th>สถานะ</th><th>เครื่อง</th><th>ปี</th><th>เดือน</th><th>วัน</th><th>เวลา</th><th>EN</th><th>เหตุผล</th></tr></thead><tbody>';
+    order.forEach(function(r){
+      var st = statusOf(r);
+      var chip = st === "ok" ? '<span class="chip ok">ปกติ</span>'
+               : st === "sus" ? '<span class="chip sus">สงสัย</span>'
+               : '<span class="chip bad">ผิด</span>';
+      var why = r.problems.concat(r.suspicious).map(esc).join("<br>") || "—";
+      h += '<tr class="' + st + '"><td>' + r.no + '</td><td>' + chip + '</td>'
+         + '<td>' + esc(r.fields.unit) + '</td><td>' + esc(r.fields.year) + '</td>'
+         + '<td>' + esc(r.fields.month) + '</td><td>' + esc(r.fields.day) + '</td>'
+         + '<td>' + esc(r.fields.time) + '</td><td>' + esc(r.fields.en) + '</td>'
+         + '<td class="why">' + why + '</td></tr>';
+    });
+    h += '</tbody></table></div></div>';
+
+    out.innerHTML = h;
+  }
+
+  function run(){
+    var lines = document.getElementById("input").value.split(/\r?\n/)
+                  .filter(function(l){ return l.trim() !== ""; });
+    var recs = lines.map(function(l, i){
+      var p = parseLine(l);
+      return { no: i+1, fields: p.fields, problems: p.problems, suspicious: [] };
+    });
+    render(applyFrequency(recs));
+  }
+
+  document.getElementById("run").addEventListener("click", run);
+  document.getElementById("sample").addEventListener("click", function(){
+    document.getElementById("input").value = SAMPLE; run();
+  });
+  document.getElementById("clear").addEventListener("click", function(){
+    document.getElementById("input").value = "";
+    document.getElementById("out").innerHTML = "";
+  });
+
+  /* start with the sample already loaded so the page is never empty */
+  document.getElementById("input").value = SAMPLE;
+  run();
+})();
+</script>
+</body>
+</html>
