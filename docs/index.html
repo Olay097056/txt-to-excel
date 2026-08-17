@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>txt-to-excel — demo</title>
-<meta name="description" content="ลองตัวตรวจจับเครื่องรูดบัตร ETWIN ในเบราว์เซอร์ — ตรวจสองชั้น แล้วชี้ว่าเครื่องไหนมีปัญหา">
+<meta name="description" content="ลองตัวตรวจจับเครื่องรูดบัตร ETWIN ในเบราว์เซอร์ ตรวจสองชั้น แล้วชี้ว่าเครื่องไหนมีปัญหา">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
@@ -105,10 +105,10 @@ footer{margin-top:34px;font-family:var(--mono);font-size:.68rem;color:var(--dim)
 
   <a class="back" href="https://github.com/Olay097056/txt-to-excel">&larr; GITHUB REPO</a>
   <h1 style="margin-top:14px">txt-to-excel</h1>
-  <p class="sub">ตัวตรวจไฟล์ export จากเครื่องรูดบัตร ETWIN — วางข้อความลงไป แล้วมันจะบอกว่า<strong>เครื่องไหนกำลังมีปัญหา</strong> ไม่ใช่แค่บอกว่าไฟล์มี error</p>
+  <p class="sub">ตัวตรวจไฟล์ export จากเครื่องรูดบัตร ETWIN วางข้อความลงไป แล้วมันจะบอกว่า<strong>เครื่องไหนกำลังมีปัญหา</strong> ไม่ใช่แค่บอกว่าไฟล์มี error</p>
 
   <div class="note">
-    หน้านี้เป็นตัวอย่างให้ลองเล่น ตรรกะการตรวจสอบพอร์ตมาจาก <code>txt_to_excel.py</code> ตัวจริงทั้งหมด
+    หน้านี้เป็นตัวอย่างให้ลองเล่น ตัวตรวจในหน้านี้ยกมาจาก <code>txt_to_excel.py</code> ตัวจริงทั้งหมด
     <strong>ประมวลผลในเบราว์เซอร์ล้วน ไม่มีการอัปโหลดข้อมูลไปที่ใด</strong>
     ตัวจริงเป็นโปรแกรม Python ที่เขียนไฟล์ Excel ระบายสีออกมา ส่วนหน้านี้แสดงผลเป็นตารางแทน
     ข้อมูลตัวอย่างเป็นข้อมูลสังเคราะห์ ไม่ใช่ข้อมูลการรูดบัตรของใครจริง
@@ -128,8 +128,8 @@ footer{margin-top:34px;font-family:var(--mono);font-size:.68rem;color:var(--dim)
   <div id="out"></div>
 
   <footer>
-    <div>ตรวจสองชั้น — กฎตายตัวจับค่าที่เป็นไปไม่ได้ (แดง) · ความถี่รายเครื่องจับค่าที่ถูกต้องแต่ผิดปกติสำหรับเครื่องนั้น (เหลือง)</div>
-    <div>ความถี่ใช้กับ ปี/เดือน/วัน เท่านั้น — เวลาและ EN มีค่าไม่ซ้ำกันเกือบทุกแถว ถ้าเอาไปจับด้วยจะเตือนทุกบรรทัดจนกลบของจริง</div>
+    <div>ตรวจสองชั้น · กฎตายตัวจับค่าที่เป็นไปไม่ได้ (แดง) · ความถี่รายเครื่องจับค่าที่ถูกต้องแต่ผิดปกติสำหรับเครื่องนั้น (เหลือง)</div>
+    <div>ความถี่ใช้กับ ปี เดือน วัน เท่านั้น เพราะเวลากับ EN แทบไม่ซ้ำกันเลย ถ้าเอาไปจับด้วยจะเตือนทุกบรรทัดจนกลบของจริง</div>
   </footer>
 </div>
 
@@ -316,7 +316,7 @@ footer{margin-top:34px;font-family:var(--mono);font-size:.68rem;color:var(--dim)
       return rank[statusOf(a)] - rank[statusOf(b)] || a.no - b.no;
     });
 
-    h += '<div class="panel"><h2>รายบรรทัด — เรียงปัญหาขึ้นก่อน</h2><div class="scroll"><table>'
+    h += '<div class="panel"><h2>รายบรรทัด · เรียงปัญหาขึ้นก่อน</h2><div class="scroll"><table>'
        + '<thead><tr><th>#</th><th>สถานะ</th><th>เครื่อง</th><th>ปี</th><th>เดือน</th><th>วัน</th><th>เวลา</th><th>EN</th><th>เหตุผล</th></tr></thead><tbody>';
     order.forEach(function(r){
       var st = statusOf(r);
