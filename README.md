@@ -2,6 +2,14 @@
 
 # txt-to-excel
 
+### ▶ [Try the detector in your browser](https://olay097056.github.io/txt-to-excel/)
+
+Paste your own records or load the bundled synthetic sample. The validator is
+ported line-for-line from `txt_to_excel.py` and runs entirely client-side —
+nothing is uploaded.
+
+---
+
 Reads the raw export format of **ETWIN card-reader terminals**, converts it into
 a colour-coded Excel workbook, and flags the records that look wrong — so a
 human reviews 5 suspicious rows instead of eyeballing 2,700 identical-looking
